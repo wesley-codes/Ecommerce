@@ -15,8 +15,47 @@ class Uploadproduct extends StatefulWidget {
 }
 
 class _UploadproductState extends State<Uploadproduct> {
-  Future<List<Product>> _futureProducts;
   Dio dio = Dio();
+
+  Future<void> _showDialog() async {
+    return showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: Colors.purple,
+                    child: Icon(
+                      Icons.done,
+                      color: Colors.white70,
+                      size: 40,
+                    ),
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Text(
+                    "Product Uploaded",
+                    style: TextStyle(color: Colors.black, fontSize: 18),
+                  )
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                child: Text("Go Back"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              )
+            ],
+          );
+        });
+  }
+
   File _image;
   _imgFromGallery() async {
     File image = await ImagePicker.pickImage(
@@ -36,7 +75,9 @@ class _UploadproductState extends State<Uploadproduct> {
         source: ImageSource.camera, imageQuality: 50);
     setState(() {
       if (image != null) {
-        _image = File(image.path);
+        setState(() {
+          _image = image;
+        });
       } else {
         print('No image selected.');
       }
@@ -75,6 +116,7 @@ class _UploadproductState extends State<Uploadproduct> {
 
   String productName;
   String productDescription;
+  int productPrice;
 
   @override
   Widget build(BuildContext context) {
@@ -90,10 +132,43 @@ class _UploadproductState extends State<Uploadproduct> {
             children: [
               Stack(
                 children: [
-                  CircleAvatar(
-                    backgroundColor: Colors.purple,
-                    radius: 60,
-                  ),
+                  // CircleAvatar(
+                  //   backgroundColor: Colors.purple,
+                  //   radius: 60,
+                  // ),
+                  _image == null
+                      ? Container(
+                          child: Image(
+                            image: NetworkImage(
+                                "https://thumbs.dreamstime.com/b/no-image-available-icon-flat-vector-no-image-available-icon-flat-vector-illustration-132482953.jpg"),
+                          ),
+                          height: 200,
+                          width: 200,
+                          decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              border: Border.all(
+                                  width: 3,
+                                  color: Colors.purple,
+                                  style: BorderStyle.solid),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15))),
+                        )
+                      : Container(
+                          child: Image.file(
+                            _image,
+                            fit: BoxFit.fill,
+                          ),
+                          height: 200,
+                          width: 200,
+                          decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              border: Border.all(
+                                  width: 3,
+                                  color: Colors.purple,
+                                  style: BorderStyle.solid),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(15))),
+                        ),
                   Positioned(
                     bottom: 12,
                     right: 7,
@@ -139,31 +214,34 @@ class _UploadproductState extends State<Uploadproduct> {
                   ),
                 ),
               ),
-              // Padding(
-              //   padding: const EdgeInsets.all(8.0),
-              //   child: TextField(
-              //     controller: _productPrice,
-              //     decoration: new InputDecoration(
-              //       labelText: "Product Price",
-              //       labelStyle: KTextFieldLabelStyle,
-              //       hintText: "Product Price",
-              //       enabledBorder: OutlineInputBorder(
-              //         borderSide: const BorderSide(
-              //           color: Colors.grey,
-              //           width: 2,
-              //         ),
-              //         borderRadius: BorderRadius.circular(15),
-              //       ),
-              //       focusedBorder: OutlineInputBorder(
-              //         borderSide: BorderSide(
-              //           width: 2,
-              //           color: Colors.purple,
-              //         ),
-              //         borderRadius: BorderRadius.circular(10),
-              //       ),
-              //     ),
-              //   ),
-              // ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextField(
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) {
+                    productPrice = int.parse(value);
+                  },
+                  decoration: new InputDecoration(
+                    labelText: "Product Price",
+                    labelStyle: KTextFieldLabelStyle,
+                    hintText: "Product Price",
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(
+                        color: Colors.grey,
+                        width: 2,
+                      ),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        width: 2,
+                        color: Colors.purple,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextField(
@@ -201,15 +279,17 @@ class _UploadproductState extends State<Uploadproduct> {
                           filename: filename,
                           contentType: MediaType("image", "png")),
                       "productName": productName,
-                      "description": productDescription
+                      "description": productDescription,
+                      "price": productPrice,
                     });
                     Response response = await dio.post(
                         "https://apiecomm.herokuapp.com/product/add",
                         data: formData);
-                    print(response.headers);
                   } catch (e) {
                     print(e);
                   }
+                  print("clicked");
+                  _showDialog();
                 },
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(18),

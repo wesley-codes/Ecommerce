@@ -4,14 +4,18 @@ import 'dart:convert';
 class Product {
   String productName;
   String description;
+  String image;
+  int price;
 
-  Product({this.description, this.productName});
+  Product({this.description, this.productName, this.image ,this.price});
 
   factory Product.fromjson(Map<String, dynamic> json) {
     return Product(
-      description: json['description'],
-      productName: json['productName'],
-    );
+        description: json['description'],
+        productName: json['productName'],
+        image: json['image'],
+        price:json['price']
+        );
   }
 }
 
@@ -21,9 +25,10 @@ Future<List<Product>> fetchProducts() async {
   if (response.statusCode == 200) {
     var body = jsonDecode(response.body) as List;
 
-    List<Product> product_object =
-        body.map((product_json) => Product.fromjson(product_json)).toList();
-    return product_object;
+    List<Product> productObject =
+        body.map((productJson) => Product.fromjson(productJson)).toList();
+
+    return productObject;
   } else {
     print(response.statusCode);
   }

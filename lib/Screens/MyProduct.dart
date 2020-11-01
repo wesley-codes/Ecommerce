@@ -14,6 +14,7 @@ class MyProducts extends StatefulWidget {
 }
 
 class _MyProductsState extends State<MyProducts> {
+  // CONVERTING PRODUCT TO LIST
   Future<List<Product>> futureProduct;
 
   @override
@@ -21,6 +22,15 @@ class _MyProductsState extends State<MyProducts> {
     // TODO: implement initState
     super.initState();
     futureProduct = fetchProducts();
+  }
+
+// A REFRESH ABILITY FEATURE
+  Future<Null> refreshList() async {
+    await Future.delayed(Duration(seconds: 2));
+    setState(() {
+          futureProduct = fetchProducts();
+    });
+    return null;
   }
 
   // CREATING A _SCAFFOLD KEY SO I CAN BE ABLE TO USE A DIFFRENT ICON FOR A DRAWER
@@ -147,120 +157,131 @@ class _MyProductsState extends State<MyProducts> {
           ),
         ),
       ),
-      body: FutureBuilder<List<Product>>(
-        future: fetchProducts(),
-        builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-          if (snapshot.hasData) {
-            return Center(
-              child: Column(
-                children: [
-                  Flexible(
-                      child: Consumer<Cart>(builder: (context, value, child) {
-                    return GridView.builder(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 1, mainAxisSpacing: 15.0),
-                      itemBuilder: (BuildContext context, int index) {
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
+      body: RefreshIndicator(
+        onRefresh: refreshList,
+        child: FutureBuilder<List<Product>>(
+          future: futureProduct,
+          builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+            if (snapshot.hasData) {
+              return Center(
+                child: Column(
+                  children: [
+                    Flexible(
+                        child: Consumer<Cart>(builder: (context, value, child) {
+                      return GridView.builder(
+                        physics: AlwaysScrollableScrollPhysics(),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 1, mainAxisSpacing: 15.0),
+                        itemCount: snapshot.data.length, //*//
+                        itemBuilder: (BuildContext context, int index) {
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
                                   builder: (context) => ProductDetails(
-                                        // itemImage: snapshot.data[index]
-                                        //     ['image'],
-                                        itemName: snapshot.data.productName,
-                                        itemDescription:
-                                            snapshot.data.description,
-                                        // itemPrice: snapshot.data.price,
-                                      )),
-                            );
-                          },
-                          child: Card(
-                              child: GridTile(
-                            child: Stack(
-                              alignment: FractionalOffset.topRight,
-                              children: [
-                                // Container(
-                                //     child: Image(
-                                //   image: NetworkImage(
-                                //       snapshot.data.['image']),
-                                // )),
-                                Icon_Button(
-                                  color: Colors.indigo,
-                                  onpressed: () {
-                                    // Navigator.push(
-                                    //     context,
-                                    //     MaterialPageRoute(
-                                    //         builder: (context) =>
-                                    //             Upload()));
-                                  },
-                                  icon: Icon(Icons.favorite),
-                                )
-                              ],
-                            ),
-                            footer: Container(
-                              margin: EdgeInsets.only(right: 3),
-                              color: Colors.white54,
+                                     itemImage: snapshot.data[index].image,
+                                    itemName:
+                                        snapshot.data[index].productName, //*//
+                                    itemDescription:
+                                        snapshot.data[index].description, //*//
+                                    itemPrice: snapshot.data[index].price,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Card(
+                                child: GridTile(
                               child: Stack(
+                                alignment: FractionalOffset.topRight,
                                 children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Expanded(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.end,
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              snapshot.data.productName,
-                                              style: KProductTextStyles,
-                                            ),
-                                            // Text("\$${snapshot.data.price}",
-                                            //     style: KProductTextStyles)
-                                          ],
-                                        ),
-                                      ),
-                                      Container(
-                                        decoration: BoxDecoration(
-                                            border: Border.all(
-                                                color: Colors.black87,
-                                                width: 3),
-                                            borderRadius:
-                                                BorderRadius.circular(3.0)),
-                                        child: Icon_Button(
-                                          color: Colors.black87,
-                                          onpressed: () {
-                                            ccart
-                                                .addproducts(storeItems[index]);
-                                          },
-                                          icon: Icon(
-                                            Icons.add_shopping_cart,
-                                            size: 30,
-                                          ),
-                                        ),
-                                      )
-                                    ],
+                                  Container(
+                                      child: Image(
+                                    image: NetworkImage(
+                                      snapshot.data[index].image,
+                                    ),
+                                    fit: BoxFit.fill,
+                                  )),
+                                  Icon_Button(
+                                    color: Colors.indigo,
+                                    onpressed: () {
+                                      // Navigator.push(
+                                      //     context,
+                                      //     MaterialPageRoute(
+                                      //         builder: (context) =>
+                                      //             Upload()));
+                                    },
+                                    icon: Icon(Icons.favorite),
                                   )
                                 ],
                               ),
-                            ),
-                          )),
-                        );
-                      },
-                    );
-                  }))
-                ],
-              ),
-            );
-          } else if (snapshot.hasError) {
-            return Center(child: Text("something went wrong ...."));
-          }
-          return Center(child: CircularProgressIndicator());
-        },
+                              footer: Container(
+                                margin: EdgeInsets.only(right: 3),
+                                color: Colors.white54,
+                                child: Stack(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.end,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                snapshot
+                                                    .data[index].productName,
+                                                style: KProductTextStyles,
+                                              ),
+                                              Text(
+                                                  "\$${snapshot.data[index].price}",
+                                                  style: KProductTextStyles)
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                          decoration: BoxDecoration(
+                                              border: Border.all(
+                                                  color: Colors.black87,
+                                                  width: 3),
+                                              borderRadius:
+                                                  BorderRadius.circular(3.0)),
+                                          child: Icon_Button(
+                                            color: Colors.black87,
+                                            onpressed: () {
+                                              ccart.addproducts(
+                                                  storeItems[index]);
+                                            },
+                                            icon: Icon(
+                                              Icons.add_shopping_cart,
+                                              size: 30,
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                    )
+                                  ],
+                                ),
+                              ),
+                            )),
+                          );
+                        },
+                      );
+                    }))
+                  ],
+                ),
+              );
+            } else if (snapshot.hasError) {
+              return Center(child: Text("something went wrong ...."));
+            }
+            return Center(child: CircularProgressIndicator());
+          },
+        ),
       ),
     );
   }

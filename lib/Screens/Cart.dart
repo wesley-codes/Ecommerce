@@ -97,7 +97,9 @@ class _ShoppingCartState extends State<ShoppingCart> {
               children: [
                 Expanded(
                   child: ListView.builder(
+                    
                     itemBuilder: (BuildContext context, int index) {
+                      
                       return Card(
                         child: Row(
                           children: [
